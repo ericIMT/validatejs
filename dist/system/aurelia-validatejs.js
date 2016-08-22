@@ -121,6 +121,12 @@ System.register(['aurelia-metadata', 'aurelia-validation', 'validate.js'], funct
 
   _export('numericality', numericality);
 
+  function registerCustomValidationRule(targetOrConfig, key, descriptor) {
+    return base(targetOrConfig, key, descriptor, ValidationRule.registerCustomValidationRule);
+  }
+
+  _export('registerCustomValidationRule', registerCustomValidationRule);
+
   function configure(config) {
     config.container.registerInstance(ValidatorInterface, new Validator());
   }
@@ -205,6 +211,26 @@ System.register(['aurelia-metadata', 'aurelia-validation', 'validate.js'], funct
           var config = arguments.length <= 0 || arguments[0] === undefined ? true : arguments[0];
 
           return new ValidationRule('url', config);
+        };
+
+        ValidationRule.registerCustomValidationRule = function registerCustomValidationRule() {
+          var config = arguments.length <= 0 || arguments[0] === undefined ? true : arguments[0];
+
+          var ruleName = config.ruleName;
+          var rule = config.rule;
+
+          validate.validators[ruleName] = rule;
+
+          ValidationRule[ruleName] = function (config) {
+            return new ValidationRule(ruleName, config);
+          };
+
+          ValidationRules[ruleName] = function (config) {
+            this.addRule(this.currentProperty, ValidationRule[ruleName](config));
+            return this;
+          };
+
+          return new ValidationRule(ruleName, config.config || true);
         };
 
         return ValidationRule;
@@ -302,6 +328,21 @@ System.register(['aurelia-metadata', 'aurelia-validation', 'validate.js'], funct
 
         ValidationRules.prototype.url = function url(configuration) {
           this.addRule(this.currentProperty, ValidationRule.url(configuration));
+          return this;
+        };
+
+        ValidationRules.prototype.registerCustomValidationRule = function registerCustomValidationRule(ruleName, rule) {
+          validate.validators[ruleName] = rule;
+
+          ValidationRule[ruleName] = function (config) {
+            return new ValidationRule(ruleName, config);
+          };
+
+          this[ruleName] = function (configuration) {
+            this.addRule(this.currentProperty, ValidationRule[ruleName](configuration));
+            return this;
+          };
+
           return this;
         };
 

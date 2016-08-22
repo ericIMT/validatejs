@@ -43,6 +43,26 @@ export class ValidationRule {
   static url(config = true) {
     return new ValidationRule('url', config);
   }
+  static registerCustomValidationRule(config = true)
+  {
+    let ruleName = config.ruleName;
+    let rule = config.rule;
+    //add the rule to validate.js
+    validate.validators[ruleName] = rule;
+    //add the wrapper for the rule to ValidationRule so we can instantiate an instance of it (as a ValidationRule object)
+    ValidationRule[ruleName] = function(config)
+    {
+        return new ValidationRule(ruleName, config);
+    }
+    //add a wrapper so we can associate the rule as a validator for a field for 
+    ValidationRules[ruleName] = function(config)
+    {
+        this.addRule(this.currentProperty, ValidationRule[ruleName](config));
+        return this;
+    };
+
+    return new ValidationRule(ruleName, config.config||true);
+  }
 }
 
 export function cleanResult(data) {
@@ -133,6 +153,24 @@ export class ValidationRules {
     this.addRule(this.currentProperty, ValidationRule.url(configuration));
     return this;
   }
+  registerCustomValidationRule(ruleName, rule)
+  {
+  //add the custom rule's function to the  validate.js object
+    validate.validators[ruleName] = rule;
+  //add a wrapper to ValidationRule to be able to cratea an instance of the new rule.
+    ValidationRule[ruleName] = function(config)
+    {
+            return new ValidationRule(ruleName, config);
+    }
+   //Create a function to use the new validation rule using the fluent API
+    this[ruleName] = function(configuration)
+    {
+        this.addRule(this.currentProperty, ValidationRule[ruleName](configuration));
+        return this;
+    };
+
+    return this;
+  }
 }
 
 export function base(targetOrConfig, key, descriptor, rule) {
@@ -209,6 +247,9 @@ export function numericality(targetOrConfig, key, descriptor) {
   return base(targetOrConfig, key, descriptor, ValidationRule.numericality);
 }
 
+export function registerCustomValidationRule(targetOrConfig, key, descriptor) {
+  return base(targetOrConfig, key, descriptor, ValidationRule.registerCustomValidationRule);
+}
 import validate from 'validate.js';
 
 export class Validator {

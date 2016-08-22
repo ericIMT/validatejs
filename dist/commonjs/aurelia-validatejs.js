@@ -19,6 +19,7 @@ exports.inclusion = inclusion;
 exports.format = format;
 exports.url = url;
 exports.numericality = numericality;
+exports.registerCustomValidationRule = registerCustomValidationRule;
 exports.configure = configure;
 
 var _aureliaMetadata = require('aurelia-metadata');
@@ -99,6 +100,26 @@ var ValidationRule = exports.ValidationRule = function () {
     var config = arguments.length <= 0 || arguments[0] === undefined ? true : arguments[0];
 
     return new ValidationRule('url', config);
+  };
+
+  ValidationRule.registerCustomValidationRule = function registerCustomValidationRule() {
+    var config = arguments.length <= 0 || arguments[0] === undefined ? true : arguments[0];
+
+    var ruleName = config.ruleName;
+    var rule = config.rule;
+
+    _validate3.default.validators[ruleName] = rule;
+
+    ValidationRule[ruleName] = function (config) {
+      return new ValidationRule(ruleName, config);
+    };
+
+    ValidationRules[ruleName] = function (config) {
+      this.addRule(this.currentProperty, ValidationRule[ruleName](config));
+      return this;
+    };
+
+    return new ValidationRule(ruleName, config.config || true);
   };
 
   return ValidationRule;
@@ -210,6 +231,21 @@ var ValidationRules = exports.ValidationRules = function () {
     return this;
   };
 
+  ValidationRules.prototype.registerCustomValidationRule = function registerCustomValidationRule(ruleName, rule) {
+    _validate3.default.validators[ruleName] = rule;
+
+    ValidationRule[ruleName] = function (config) {
+      return new ValidationRule(ruleName, config);
+    };
+
+    this[ruleName] = function (configuration) {
+      this.addRule(this.currentProperty, ValidationRule[ruleName](configuration));
+      return this;
+    };
+
+    return this;
+  };
+
   return ValidationRules;
 }();
 
@@ -282,6 +318,10 @@ function url(targetOrConfig, key, descriptor) {
 
 function numericality(targetOrConfig, key, descriptor) {
   return base(targetOrConfig, key, descriptor, ValidationRule.numericality);
+}
+
+function registerCustomValidationRule(targetOrConfig, key, descriptor) {
+  return base(targetOrConfig, key, descriptor, ValidationRule.registerCustomValidationRule);
 }
 
 var Validator = exports.Validator = function () {

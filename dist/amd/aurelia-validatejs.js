@@ -20,6 +20,7 @@ define(['exports', 'aurelia-metadata', 'aurelia-validation', 'validate.js'], fun
   exports.format = format;
   exports.url = url;
   exports.numericality = numericality;
+  exports.registerCustomValidationRule = registerCustomValidationRule;
   exports.configure = configure;
 
   var _validate3 = _interopRequireDefault(_validate2);
@@ -98,6 +99,26 @@ define(['exports', 'aurelia-metadata', 'aurelia-validation', 'validate.js'], fun
       var config = arguments.length <= 0 || arguments[0] === undefined ? true : arguments[0];
 
       return new ValidationRule('url', config);
+    };
+
+    ValidationRule.registerCustomValidationRule = function registerCustomValidationRule() {
+      var config = arguments.length <= 0 || arguments[0] === undefined ? true : arguments[0];
+
+      var ruleName = config.ruleName;
+      var rule = config.rule;
+
+      _validate3.default.validators[ruleName] = rule;
+
+      ValidationRule[ruleName] = function (config) {
+        return new ValidationRule(ruleName, config);
+      };
+
+      ValidationRules[ruleName] = function (config) {
+        this.addRule(this.currentProperty, ValidationRule[ruleName](config));
+        return this;
+      };
+
+      return new ValidationRule(ruleName, config.config || true);
     };
 
     return ValidationRule;
@@ -209,6 +230,21 @@ define(['exports', 'aurelia-metadata', 'aurelia-validation', 'validate.js'], fun
       return this;
     };
 
+    ValidationRules.prototype.registerCustomValidationRule = function registerCustomValidationRule(ruleName, rule) {
+      _validate3.default.validators[ruleName] = rule;
+
+      ValidationRule[ruleName] = function (config) {
+        return new ValidationRule(ruleName, config);
+      };
+
+      this[ruleName] = function (configuration) {
+        this.addRule(this.currentProperty, ValidationRule[ruleName](configuration));
+        return this;
+      };
+
+      return this;
+    };
+
     return ValidationRules;
   }();
 
@@ -281,6 +317,10 @@ define(['exports', 'aurelia-metadata', 'aurelia-validation', 'validate.js'], fun
 
   function numericality(targetOrConfig, key, descriptor) {
     return base(targetOrConfig, key, descriptor, ValidationRule.numericality);
+  }
+
+  function registerCustomValidationRule(targetOrConfig, key, descriptor) {
+    return base(targetOrConfig, key, descriptor, ValidationRule.registerCustomValidationRule);
   }
 
   var Validator = exports.Validator = function () {

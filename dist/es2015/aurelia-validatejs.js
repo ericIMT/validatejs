@@ -43,6 +43,23 @@ export let ValidationRule = class ValidationRule {
   static url(config = true) {
     return new ValidationRule('url', config);
   }
+  static registerCustomValidationRule(config = true) {
+    let ruleName = config.ruleName;
+    let rule = config.rule;
+
+    validate.validators[ruleName] = rule;
+
+    ValidationRule[ruleName] = function (config) {
+      return new ValidationRule(ruleName, config);
+    };
+
+    ValidationRules[ruleName] = function (config) {
+      this.addRule(this.currentProperty, ValidationRule[ruleName](config));
+      return this;
+    };
+
+    return new ValidationRule(ruleName, config.config || true);
+  }
 };
 
 export function cleanResult(data) {
@@ -135,6 +152,20 @@ export let ValidationRules = class ValidationRules {
     this.addRule(this.currentProperty, ValidationRule.url(configuration));
     return this;
   }
+  registerCustomValidationRule(ruleName, rule) {
+    validate.validators[ruleName] = rule;
+
+    ValidationRule[ruleName] = function (config) {
+      return new ValidationRule(ruleName, config);
+    };
+
+    this[ruleName] = function (configuration) {
+      this.addRule(this.currentProperty, ValidationRule[ruleName](configuration));
+      return this;
+    };
+
+    return this;
+  }
 };
 
 export function base(targetOrConfig, key, descriptor, rule) {
@@ -208,6 +239,9 @@ export function numericality(targetOrConfig, key, descriptor) {
   return base(targetOrConfig, key, descriptor, ValidationRule.numericality);
 }
 
+export function registerCustomValidationRule(targetOrConfig, key, descriptor) {
+  return base(targetOrConfig, key, descriptor, ValidationRule.registerCustomValidationRule);
+}
 import validate from 'validate.js';
 
 export let Validator = class Validator {

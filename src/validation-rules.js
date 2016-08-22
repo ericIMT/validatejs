@@ -77,4 +77,22 @@ export class ValidationRules {
     this.addRule(this.currentProperty, ValidationRule.url(configuration));
     return this;
   }
+  registerCustomValidationRule(ruleName, rule)
+  {
+  //add the custom rule's function to the  validate.js object
+    validate.validators[ruleName] = rule;
+  //add a wrapper to ValidationRule to be able to cratea an instance of the new rule.
+    ValidationRule[ruleName] = function(config)
+    {
+            return new ValidationRule(ruleName, config);
+    }
+   //Create a function to use the new validation rule using the fluent API
+    this[ruleName] = function(configuration)
+    {
+        this.addRule(this.currentProperty, ValidationRule[ruleName](configuration));
+        return this;
+    };
+
+    return this;
+  }
 }

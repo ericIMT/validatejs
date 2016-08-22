@@ -71,6 +71,26 @@ export var ValidationRule = function () {
     return new ValidationRule('url', config);
   };
 
+  ValidationRule.registerCustomValidationRule = function registerCustomValidationRule() {
+    var config = arguments.length <= 0 || arguments[0] === undefined ? true : arguments[0];
+
+    var ruleName = config.ruleName;
+    var rule = config.rule;
+
+    validate.validators[ruleName] = rule;
+
+    ValidationRule[ruleName] = function (config) {
+      return new ValidationRule(ruleName, config);
+    };
+
+    ValidationRules[ruleName] = function (config) {
+      this.addRule(this.currentProperty, ValidationRule[ruleName](config));
+      return this;
+    };
+
+    return new ValidationRule(ruleName, config.config || true);
+  };
+
   return ValidationRule;
 }();
 
@@ -180,6 +200,21 @@ export var ValidationRules = function () {
     return this;
   };
 
+  ValidationRules.prototype.registerCustomValidationRule = function registerCustomValidationRule(ruleName, rule) {
+    validate.validators[ruleName] = rule;
+
+    ValidationRule[ruleName] = function (config) {
+      return new ValidationRule(ruleName, config);
+    };
+
+    this[ruleName] = function (configuration) {
+      this.addRule(this.currentProperty, ValidationRule[ruleName](configuration));
+      return this;
+    };
+
+    return this;
+  };
+
   return ValidationRules;
 }();
 
@@ -254,6 +289,9 @@ export function numericality(targetOrConfig, key, descriptor) {
   return base(targetOrConfig, key, descriptor, ValidationRule.numericality);
 }
 
+export function registerCustomValidationRule(targetOrConfig, key, descriptor) {
+  return base(targetOrConfig, key, descriptor, ValidationRule.registerCustomValidationRule);
+}
 import validate from 'validate.js';
 
 export var Validator = function () {

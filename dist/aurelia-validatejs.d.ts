@@ -22,6 +22,7 @@ export declare class ValidationRule {
   static numericality(config?: any): any;
   static presence(config?: any): any;
   static url(config?: any): any;
+  static registerCustomValidationRule(config?: any): any;
 }
 export declare function cleanResult(data?: any): any;
 export declare class ValidationRules {
@@ -43,6 +44,7 @@ export declare class ValidationRules {
   inclusion(configuration?: any): any;
   exclusion(configuration?: any): any;
   url(configuration?: any): any;
+  registerCustomValidationRule(ruleName?: any, rule?: any): any;
 }
 export declare function base(targetOrConfig?: any, key?: any, descriptor?: any, rule?: any): any;
 export declare function addRule(target?: any, key?: any, descriptor?: any, targetOrConfig?: any, rule?: any): any;
@@ -58,6 +60,7 @@ export declare function inclusion(targetOrConfig?: any, key?: any, descriptor?: 
 export declare function format(targetOrConfig?: any, key?: any, descriptor?: any): any;
 export declare function url(targetOrConfig?: any, key?: any, descriptor?: any): any;
 export declare function numericality(targetOrConfig?: any, key?: any, descriptor?: any): any;
+export declare function registerCustomValidationRule(targetOrConfig?: any, key?: any, descriptor?: any): any;
 export declare class Validator {
   validateProperty(object?: any, propertyName?: any, rules?: any): any;
   validateObject(object?: any, rules?: any): any;

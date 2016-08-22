@@ -38,6 +38,26 @@ export class ValidationRule {
   static url(config = true) {
     return new ValidationRule('url', config);
   }
+  static registerCustomValidationRule(config = true)
+  {
+    let ruleName = config.ruleName;
+    let rule = config.rule;
+    //add the rule to validate.js
+    validate.validators[ruleName] = rule;
+    //add the wrapper for the rule to ValidationRule so we can instantiate an instance of it (as a ValidationRule object)
+    ValidationRule[ruleName] = function(config)
+    {
+        return new ValidationRule(ruleName, config);
+    }
+    //add a wrapper so we can associate the rule as a validator for a field for 
+    ValidationRules[ruleName] = function(config)
+    {
+        this.addRule(this.currentProperty, ValidationRule[ruleName](config));
+        return this;
+    };
+
+    return new ValidationRule(ruleName, config.config||true);
+  }
 }
 
 export function cleanResult(data) {

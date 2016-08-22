@@ -224,6 +224,26 @@ export class Model {
 }
 ```
 
+## Custom Validation rules
+
+```es6
+export function custRule(value,config){ ... }
+
+export class Model {
+  @registerCustomValidationRule({ruleName:'myRule', rule:custRule, config:{message:"try again",foo:"bar"}}) myProp = "Foobar!";
+  @registerCustomValidationRule({ruleName:'myRule2', rule:function(value,option){....}, config:{message:"try again",foo:"bar"}}) myProp2 = "Foobar!";
+}
+
+export class Model {
+  constructor() {
+    this.validator = new Validator(this)
+      .registerCustomValidationRule( 'myRule',custRule)
+      .registerCustomValidationRule( 'myRule2',function(value,option){....})
+      .ensure("myProp").required().myRule({message:"Incorrect value entered", });
+  }
+}
+```
+
 ## Building The Code
 
 To build the code, follow these steps.
